@@ -23,9 +23,9 @@ VALUES
 INSERT INTO employee(first_name, last_name, role_id, manager_id)
 VALUES 
 ("Namjoon", "Kim", 9, NULL),
-("Jin", "Kim", 1, 3),
+("Jin", "Kim", 1, 1),
 ("Yoongi", "Min", 4, 1),
-("Hobi", "Jung", 5, NULL),
-("Jimin", "Park", 7, 2),
-("Tae", "Kim", 2, NULL),
-("Jungkook", "Jeon", 3, NULL);
+("Hobi", "Jung", 5, 1),
+("Jimin", "Park", 7, 1),
+("Tae", "Kim", 2, 1),
+("Jungkook", "Jeon", 3, 1);

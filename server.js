@@ -48,11 +48,8 @@ const choice = (data) => {
     }
 }
 
-async function viewDepartments() {
-    console.log('Showing departments...\n');
-    const sql = `SELECT departments.id AS id, departments.name AS department FROM departments`;
-
-    db.query(sql, (err, rows) => {
+const showTable = (data) => {
+    db.query(data, (err, rows) => {
         if (err) {
             throw err;
         } else {
@@ -62,28 +59,59 @@ async function viewDepartments() {
     });
 }
 
-async function viewRoles() {
+async function viewDepartments() {
+    console.log('Showing departments...');
+    const select = `SELECT 
+    departments.id,
+    departments.name AS departments
+    FROM departments`;
 
+    showTable(select);
+}
+
+async function viewRoles() {
+    console.log('Showing Roles...');
+    const select = `SELECT 
+    roles.id,
+    roles.title,
+    roles.salary,
+    departments.name AS departments
+    FROM roles
+    JOIN departments ON roles.department_id = departments.id`;
+
+    showTable(select);
 }
 
 async function viewEmployees() {
+    console.log('Showing Employees...');
+    const select = `SELECT 
+    employee.id, 
+    employee.first_name, 
+    employee.last_name,
+    roles.salary,
+    roles.title,
+    employee.manager_id
+    FROM employee
+    JOIN roles ON employee.role_id = roles.id`;
 
+    showTable(select);
 }
 
 async function addDepartment() {
-
+    console.log('Adding Department...');
 }
 
 async function addEmployee() {
-
+    console.log('Adding Employee...');
 }
 
 async function updateEmployee() {
+    console.log('Updating Employee...');
 
 }
 
 async function quitApp() {
-
+    console.log('Quitting...');
 }
 
 const promptUser = () => {
