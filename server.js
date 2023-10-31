@@ -39,6 +39,8 @@ const choice = (data) => {
             return viewEmployees();
         case 'Add a department':
             return addDepartment();
+        case 'Add a role':
+            return addRole();
         case 'Add an employee':
             return addEmployee();
         case 'Update an employee role':
@@ -99,10 +101,133 @@ async function viewEmployees() {
 
 async function addDepartment() {
     console.log('Adding Department...');
+    inquirer.prompt([
+        {
+            message: 'What department do want to add?',
+            type: 'input',
+            name: 'department',
+            validate: department => {
+                if (department) {
+                    return true;
+                } else {
+                    console.log('Please enter a department.');
+                    return false;
+                }
+            }
+        }
+    ])
+        .then((response) => {
+            const insert = `INSERT INTO departments (name) VALUES (?)`;
+            db.query(insert, response.department, (err, result) => {
+                if (err) {
+                    throw err;
+                } else {
+                    console.log(`Added ${response.department} to departments!`);
+                }
+
+                viewDepartments();
+            })
+        });
 }
+
+async function addRole() {
+    console.log('Adding Role...');
+    inquirer.prompt([
+        {
+            message: 'What role do you want to add?',
+            type: 'input',
+            name: 'role',
+            validate: role => {
+                if (role) {
+                    return true;
+                } else {
+                    console.log('Please enter a role.');
+                    return false;
+                }
+            }
+        },
+        {
+            message: 'What is the salary with the role?',
+            type: 'input',
+            name: 'salary',
+            validate: salary => {
+                if (typeof salary === 'number') {
+                    return true;
+                } else {
+                    console.log('Please enter a salary.');
+                    return false;
+                }
+            }
+        }
+    ])
+        .then((response) => {
+            const newRole = [response.role, response.salary];
+            const roleSql = `SELECT name, id FROM department`;
+
+            db.query(roleSql, (err, data) => {
+                if (err) {
+                    throw err;
+                } else {
+                    const dept = data.map(({ name, id }) => ({ name: name, value: id }));
+
+                    inquirer.prompt([
+                        {
+                            message: "What department is this role in?",
+                            type: 'list',
+                            name: 'department',
+                            choices: dept
+                        }
+                    ])
+                        .then((response) => {
+                            const dept = response.deptartment;
+                            newRole.push(dept);
+
+                            const insert = `INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)`;
+
+                            db.query(insert, newRole, (err, result) => {
+                                if (err) {
+                                    throw err;
+                                } else {
+                                    console.log('Added' + answer.role + " to roles!");
+                                }
+                                viewRoles();
+                            });
+                        });
+                }
+            });
+        });
+};
+
 
 async function addEmployee() {
     console.log('Adding Employee...');
+    inquirer.prompt([
+        {
+            message: 'Who do you want to add as an employee?',
+            type: 'input',
+            name: 'employee',
+            validate: employee => {
+                if (employee) {
+                    return true;
+                } else {
+                    console.log('Please enter an employee.');
+                    return false;
+                }
+            }
+        }
+    ])
+        .then((response) => {
+            const insert = `INSERT INTO employee (name) VALUES (?)`;
+            db.query(insert, response.employee, (err, result) => {
+                if (err) {
+                    throw err;
+                } else {
+                    console.log(`Added ${response.employee} to employee list!`);
+                }
+
+                viewEmployees();
+            })
+        });
 }
 
 async function updateEmployee() {
