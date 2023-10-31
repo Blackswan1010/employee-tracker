@@ -50,9 +50,9 @@ const choice = (data) => {
 
 async function viewDepartments() {
     console.log('Showing departments...\n');
-    const sql = `SELECT department.id AS id, department.name AS department FROM department`;
+    const sql = `SELECT departments.id AS id, departments.name AS department FROM departments`;
 
-    db.promise().query(sql, (err, rows) => {
+    db.query(sql, (err, rows) => {
         if (err) {
             throw err;
         } else {
@@ -93,5 +93,3 @@ const promptUser = () => {
             choice(response);
         })
 }
-
-promptUser();
