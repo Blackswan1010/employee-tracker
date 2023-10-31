@@ -2,21 +2,8 @@
 const express = require("express");
 const mysql = require("mysql2");
 const inquirer = require("inquirer");
+const table = require('console.table');
 
-// 
-const PORT = process.env.PORT || 3001;
-const app = express();
-
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-const db = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "password",
-    database: "employee_db"
-});
 
 const chooseActions = [
     {
@@ -37,14 +24,48 @@ const chooseActions = [
 const choice = (data) => {
     switch (data.choices) {
         case 'View all departments':
+            return viewDepartments();
         case 'View all roles':
+            return viewRoles();
         case 'View all employees':
+            return  viewEmployees();
         case 'Add a department':
+            return  addDepartment();
         case 'Add an employee':
+            return  addEmployee();
         case 'Update an employee role':
+            return; updateEmployee();
         case 'Quit':
-
+            return quitApp();
     }
+}
+
+const viewDepartments = async () => {
+
+}
+
+const viewRoles = async () => {
+
+}
+
+const viewEmployees = async () => {
+
+}
+
+const addDepartment = async () => {
+
+}
+
+const addEmployee = async () => {
+
+}
+
+const updateEmployee = async () => {
+
+}
+
+const quitApp = async () => {
+
 }
 
 const promptUser = () => {
