@@ -1,9 +1,8 @@
 // Import required packages
 const mysql = require("mysql2");
 const inquirer = require("inquirer");
-const express = require("express");
 
-
+// Created a connection with the following credentials
 const db = mysql.createConnection({
     host: "localhost",
     user: "root",
@@ -12,6 +11,7 @@ const db = mysql.createConnection({
 },
     console.log("Connected to employee database!"));
 
+// Established a connection and then prompting the user
 db.connect(err => {
     if (err) {
         throw err;
@@ -20,6 +20,7 @@ db.connect(err => {
     }
 })
 
+// A list of what actions the user can do
 const chooseActions = [
     {
         message: 'What would you like to do?',
@@ -29,6 +30,7 @@ const chooseActions = [
     }
 ];
 
+// A switch case for the user's selection for what they want to do with the employee tracker
 const choice = (data) => {
     switch (data.choices) {
         case 'View all departments':
@@ -50,6 +52,7 @@ const choice = (data) => {
     }
 }
 
+// Function that displays a formatted table on the CLI
 const showTable = (data) => {
     db.query(data, (err, rows) => {
         if (err) {
@@ -61,6 +64,7 @@ const showTable = (data) => {
     });
 }
 
+// Shows the departments in a table
 async function viewDepartments() {
     console.log('Showing departments...');
     const select = `SELECT 
@@ -71,6 +75,7 @@ async function viewDepartments() {
     showTable(select);
 }
 
+// Shows the roles in a table with the departements associated 
 async function viewRoles() {
     console.log('Showing Roles...');
     const select = `SELECT 
@@ -84,6 +89,7 @@ async function viewRoles() {
     showTable(select);
 }
 
+// Shows the employees in table with the employee data, along with the roles title and salary
 async function viewEmployees() {
     console.log('Showing Employees...');
     const select = `SELECT 
@@ -99,6 +105,7 @@ async function viewEmployees() {
     showTable(select);
 }
 
+// Adds a department with the user input
 async function addDepartment() {
     console.log('Adding Department...');
     inquirer.prompt([
@@ -130,114 +137,31 @@ async function addDepartment() {
         });
 }
 
+// Adds a role with the user input
 async function addRole() {
     console.log('Adding Role...');
-    inquirer.prompt([
-        {
-            message: 'What role do you want to add?',
-            type: 'input',
-            name: 'role',
-            validate: role => {
-                if (role) {
-                    return true;
-                } else {
-                    console.log('Please enter a role.');
-                    return false;
-                }
-            }
-        },
-        {
-            message: 'What is the salary with the role?',
-            type: 'input',
-            name: 'salary',
-            validate: salary => {
-                if (typeof salary === 'number') {
-                    return true;
-                } else {
-                    console.log('Please enter a salary.');
-                    return false;
-                }
-            }
-        }
-    ])
-        .then((response) => {
-            const newRole = [response.role, response.salary];
-            const roleSql = `SELECT name, id FROM department`;
-
-            db.query(roleSql, (err, data) => {
-                if (err) {
-                    throw err;
-                } else {
-                    const dept = data.map(({ name, id }) => ({ name: name, value: id }));
-
-                    inquirer.prompt([
-                        {
-                            message: "What department is this role in?",
-                            type: 'list',
-                            name: 'department',
-                            choices: dept
-                        }
-                    ])
-                        .then((response) => {
-                            const dept = response.deptartment;
-                            newRole.push(dept);
-
-                            const insert = `INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)`;
-
-                            db.query(insert, newRole, (err, result) => {
-                                if (err) {
-                                    throw err;
-                                } else {
-                                    console.log('Added' + answer.role + " to roles!");
-                                }
-                                viewRoles();
-                            });
-                        });
-                }
-            });
-        });
+    db.query()
 };
 
 
+// Adds an employee
 async function addEmployee() {
     console.log('Adding Employee...');
-    inquirer.prompt([
-        {
-            message: 'Who do you want to add as an employee?',
-            type: 'input',
-            name: 'employee',
-            validate: employee => {
-                if (employee) {
-                    return true;
-                } else {
-                    console.log('Please enter an employee.');
-                    return false;
-                }
-            }
-        }
-    ])
-        .then((response) => {
-            const insert = `INSERT INTO employee (name) VALUES (?)`;
-            db.query(insert, response.employee, (err, result) => {
-                if (err) {
-                    throw err;
-                } else {
-                    console.log(`Added ${response.employee} to employee list!`);
-                }
 
-                viewEmployees();
-            })
-        });
 }
 
+// Updates the employees info
 async function updateEmployee() {
     console.log('Updating Employee...');
 
 }
 
+// Ending the connection to the database
 async function quitApp() {
     console.log('Quitting...');
+    db.end();
 }
+
 
 const promptUser = () => {
     inquirer
