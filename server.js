@@ -1,23 +1,31 @@
 // Import required packages
-const express = require("express");
 const mysql = require("mysql2");
 const inquirer = require("inquirer");
-const table = require('console.table');
+const express = require("express");
 
+
+const db = mysql.createConnection({
+    host: "localhost",
+    user: "root",
+    password: "password",
+    database: "employee_db"
+},
+    console.log("Connected to employee database!"));
+
+db.connect(err => {
+    if (err) {
+        throw err;
+    } else {
+        promptUser();
+    }
+})
 
 const chooseActions = [
     {
         message: 'What would you like to do?',
-        type: list,
+        type: 'list',
         name: 'choices',
-        choices: ['View all departments',
-            'View all roles',
-            'View all employees',
-            'Add a department',
-            'Add a role',
-            'Add an employee',
-            'Update an employee role',
-            'Quit']
+        choices: ['View all departments', 'View all roles', 'View all employees', 'Add a department', 'Add a role', 'Add an employee', 'Update an employee role', 'Quit']
     }
 ];
 
@@ -28,50 +36,61 @@ const choice = (data) => {
         case 'View all roles':
             return viewRoles();
         case 'View all employees':
-            return  viewEmployees();
+            return viewEmployees();
         case 'Add a department':
-            return  addDepartment();
+            return addDepartment();
         case 'Add an employee':
-            return  addEmployee();
+            return addEmployee();
         case 'Update an employee role':
-            return; updateEmployee();
+            return updateEmployee();
         case 'Quit':
             return quitApp();
     }
 }
 
-const viewDepartments = async () => {
+async function viewDepartments() {
+    console.log('Showing departments...\n');
+    const sql = `SELECT department.id AS id, department.name AS department FROM department`;
+
+    db.promise().query(sql, (err, rows) => {
+        if (err) {
+            throw err;
+        } else {
+            console.table(rows);
+            promptUser();
+        }
+    });
+}
+
+async function viewRoles() {
 
 }
 
-const viewRoles = async () => {
+async function viewEmployees() {
 
 }
 
-const viewEmployees = async () => {
+async function addDepartment() {
 
 }
 
-const addDepartment = async () => {
+async function addEmployee() {
 
 }
 
-const addEmployee = async () => {
+async function updateEmployee() {
 
 }
 
-const updateEmployee = async () => {
-
-}
-
-const quitApp = async () => {
+async function quitApp() {
 
 }
 
 const promptUser = () => {
-    inquirer(chooseActions)
-        .then((res) => {
-            choice(res);
+    inquirer
+        .prompt(chooseActions)
+        .then((response) => {
+            choice(response);
         })
 }
 
