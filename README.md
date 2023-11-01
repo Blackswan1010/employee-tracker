@@ -6,16 +6,16 @@
 
 Creating an employee tracker database with mySQL! 
 
-Video Link: []()
+Video Link: [https://drive.google.com/file/d/1Pmx0-oI6bZGkRBk2LO1BFBfHIOe6p6Br/view](https://drive.google.com/file/d/1Pmx0-oI6bZGkRBk2LO1BFBfHIOe6p6Br/view)
 
 ## Installation 
 
 To run/test this project, look in the 'db' directory. Then copy and paste the contents of the db, schema, and then seeds files into a SQL workbench in the following order. Then click the lightning bolt at the top of the window to initialize the database of employee_db. Next, click the small refresh button on the left side to see the database. Then back in your terminal, enter 'node server' to connect to the database and initialize the prompts to choose what following actions you'd like to do. 
 
-Easier step-by-step: (IGNORE IF YOU'VE READ THE ABOVE)
--copy and paste contents from 'db' directory in order, top-down into a SQL workbench
--click the lightning bolt icon at the top of the window, just above the contents you pasted
--Under the navigator window on the left side, click the schema tab and refresh it to see your database
+Easier step-by-step: (IGNORE IF YOU'VE READ THE ABOVE) </br>
+-copy and paste contents from 'db' directory in order, top-down into a SQL workbench </br>
+-click the lightning bolt icon at the top of the window, just above the contents you pasted </br>
+-Under the navigator window on the left side, click the schema tab and refresh it to see your database </br>
 -Then back in your CLI, enter 'node server' and follow the prompts of which actions you wish to do
 
 ## Sample SQL Code
