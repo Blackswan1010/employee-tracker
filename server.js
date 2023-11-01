@@ -12,14 +12,58 @@ const db = mysql.createConnection({
     console.log("Connected to employee database!"));
 
 // Established a connection and then prompting the user
-db.connect(err => {
-    if (err) {
-        throw err;
-    } else {
-        promptUser();
-    }
-})
+// db.connect(err => {
+//     if (err) {
+//         throw err;
+//     } else {
 
+//     }
+// })
+
+function getDepartments() {
+    return new Promise((resolve, reject) => {
+        const dept = `SELECT 
+        departments.id,
+        departments.name AS departments
+        FROM departments`
+
+        db.query(dept, (err, result) => {
+            if (err) {
+               reject(err);
+            } else {
+                console.log(result);
+                const deptArr = [];
+                for (let i = 0; i < result.length; i++) {
+                    deptArr.push(result[i].departments);
+                    // id[deptArr[i].departments] = deptArr[i].id;
+                }
+                resolve(deptArr);
+            }
+        });
+    })
+}
+
+function getEmployees() {
+    return new Promise((resolve, reject) => {
+        const emp = `SELECT * FROM employee`
+
+        db.query(emp, (err, result) => {
+            if (err) {
+               reject(err);
+            } else {
+                console.log(result);
+                const empArr = [];
+                for (let i = 0; i < result.length; i++) {
+                    empArr.push(result[i].first_name);
+                    // id[deptArr[i].departments] = deptArr[i].id;
+                }
+                resolve(empArr);
+            }
+        });
+    })
+}
+
+getEmployees();
 // A list of what actions the user can do
 const chooseActions = [
     {
@@ -31,7 +75,7 @@ const chooseActions = [
 ];
 
 // A switch case for the user's selection for what they want to do with the employee tracker
-const choice = (data) => {
+const choice = async (data) => {
     switch (data.choices) {
         case 'View all departments':
             return viewDepartments();
@@ -42,7 +86,9 @@ const choice = (data) => {
         case 'Add a department':
             return addDepartment();
         case 'Add a role':
-            return addRole();
+            getDepartments().then((deptArr) => {
+                addRole(deptArr);
+            })
         case 'Add an employee':
             return addEmployee();
         case 'Update an employee role':
@@ -54,7 +100,7 @@ const choice = (data) => {
 
 // Function that displays a formatted table on the CLI
 const showTable = (data) => {
-    db.query(data, (err, rows) => {
+    db.execute(data, (err, rows) => {
         if (err) {
             throw err;
         } else {
@@ -65,7 +111,7 @@ const showTable = (data) => {
 }
 
 // Shows the departments in a table
-async function viewDepartments() {
+function viewDepartments() {
     console.log('Showing departments...');
     const select = `SELECT 
     departments.id,
@@ -76,7 +122,7 @@ async function viewDepartments() {
 }
 
 // Shows the roles in a table with the departements associated 
-async function viewRoles() {
+function viewRoles() {
     console.log('Showing Roles...');
     const select = `SELECT 
     roles.id,
@@ -90,7 +136,7 @@ async function viewRoles() {
 }
 
 // Shows the employees in table with the employee data, along with the roles title and salary
-async function viewEmployees() {
+function viewEmployees() {
     console.log('Showing Employees...');
     const select = `SELECT 
     employee.id, 
@@ -106,8 +152,9 @@ async function viewEmployees() {
 }
 
 // Adds a department with the user input
-async function addDepartment() {
+function addDepartment() {
     console.log('Adding Department...');
+    const insert = `INSERT INTO departments (name) VALUES (?)`;
     inquirer.prompt([
         {
             message: 'What department do want to add?',
@@ -124,7 +171,6 @@ async function addDepartment() {
         }
     ])
         .then((response) => {
-            const insert = `INSERT INTO departments (name) VALUES (?)`;
             db.query(insert, response.department, (err, result) => {
                 if (err) {
                     throw err;
@@ -138,15 +184,77 @@ async function addDepartment() {
 }
 
 // Adds a role with the user input
-async function addRole() {
+function addRole(deptArr) {
     console.log('Adding Role...');
-    db.query()
+    const insert = `INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)`;
+    console.log(deptArr);
+
+
+    inquirer.prompt([
+        {
+            message: 'What role do you want to add?',
+            type: 'input',
+            name: 'role',
+            validate: role => {
+                if (role) {
+                    return true;
+                } else {
+                    console.log('Please enter a role.');
+                    return false;
+                }
+            }
+        },
+        {
+            message: 'Enter the salary for the role.',
+            type: 'input',
+            name: 'salary',
+            validate: function (salary) {
+                if (typeof salary == 'string') {
+                    return true;
+                } else {
+                    console.log('Please enter a salary.');
+                    return false;
+                }
+            }
+        },
+        {
+            message: 'What department does the title reside in?',
+            type: 'list',
+            name: 'department',
+            choices: deptArr
+        }
+    ])
+        .then((response) => {
+            const {department} = response;
+            let deptId;
+
+            for(let i=0; deptArr.length; i++){
+                if(department === deptArr[i]){
+                    deptId = i+1;
+                    break;
+                }
+            }
+
+            const newRole = [response.role, response.salary, deptId];
+            db.query(insert, newRole, (err, result) => {
+                if (err) {
+                    throw err;
+                } else {
+                    console.log(`Added ${response.role} to roles list!`);
+                }
+
+                viewRoles();
+            })
+        })
+
+
 };
 
 
 // Adds an employee
 async function addEmployee() {
     console.log('Adding Employee...');
+    const insert = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`;
 
 }
 
@@ -170,3 +278,5 @@ const promptUser = () => {
             choice(response);
         })
 }
+
+promptUser();
