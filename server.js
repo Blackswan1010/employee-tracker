@@ -88,22 +88,17 @@ const choice = async (data) => {
     switch (data.choices) {
         case 'View all departments':
             return viewDepartments();
-
         case 'View all roles':
             return viewRoles();
-
         case 'View all employees':
             return viewEmployees();
-
         case 'Add a department':
             return addDepartment();
-
         case 'Add a role':
             getDepartments().then((deptArr) => {
                 addRole(deptArr)
             });
             break;
-
         case 'Add an employee':
             getEmployees().then((empArr) => {
                 getRoles().then((rolesArr) => {
@@ -111,7 +106,6 @@ const choice = async (data) => {
                 })
             });
             break;
-
         case 'Update an employee role':
             getEmployees().then((empArr) => {
                 getRoles().then((rolesArr) => {
@@ -119,7 +113,6 @@ const choice = async (data) => {
                 })
             });
             break;
-
         case 'Quit':
             return quitApp();
     }
