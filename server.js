@@ -11,15 +11,8 @@ const db = mysql.createConnection({
 },
     console.log("Connected to employee database!"));
 
-// Established a connection and then prompting the user
-// db.connect(err => {
-//     if (err) {
-//         throw err;
-//     } else {
 
-//     }
-// })
-
+// A promise function for getting all the departments
 function getDepartments() {
     return new Promise((resolve, reject) => {
         const dept = `SELECT 
@@ -29,13 +22,12 @@ function getDepartments() {
 
         db.query(dept, (err, result) => {
             if (err) {
-               reject(err);
+                reject(err);
             } else {
-                console.log(result);
+                // console.log(result);
                 const deptArr = [];
                 for (let i = 0; i < result.length; i++) {
                     deptArr.push(result[i].departments);
-                    // id[deptArr[i].departments] = deptArr[i].id;
                 }
                 resolve(deptArr);
             }
@@ -49,13 +41,12 @@ function getEmployees() {
 
         db.query(emp, (err, result) => {
             if (err) {
-               reject(err);
+                reject(err);
             } else {
-                console.log(result);
+                // console.log(result);
                 const empArr = [];
                 for (let i = 0; i < result.length; i++) {
                     empArr.push(result[i].first_name);
-                    // id[deptArr[i].departments] = deptArr[i].id;
                 }
                 resolve(empArr);
             }
@@ -63,7 +54,25 @@ function getEmployees() {
     })
 }
 
-getEmployees();
+function getRoles() {
+    return new Promise((resolve, reject) => {
+        const rol = `SELECT * FROM roles`
+
+        db.query(rol, (err, result) => {
+            if (err) {
+                reject(err);
+            } else {
+                // console.log(result);
+                const rolesArr = [];
+                for (let i = 0; i < result.length; i++) {
+                    rolesArr.push(result[i].title);
+                }
+                resolve(rolesArr);
+            }
+        });
+    })
+}
+
 // A list of what actions the user can do
 const chooseActions = [
     {
@@ -79,20 +88,38 @@ const choice = async (data) => {
     switch (data.choices) {
         case 'View all departments':
             return viewDepartments();
+
         case 'View all roles':
             return viewRoles();
+
         case 'View all employees':
             return viewEmployees();
+
         case 'Add a department':
             return addDepartment();
+
         case 'Add a role':
             getDepartments().then((deptArr) => {
-                addRole(deptArr);
-            })
+                addRole(deptArr)
+            });
+            break;
+
         case 'Add an employee':
-            return addEmployee();
+            getEmployees().then((empArr) => {
+                getRoles().then((rolesArr) => {
+                    addEmployee(empArr, rolesArr)
+                })
+            });
+            break;
+
         case 'Update an employee role':
-            return updateEmployee();
+            getEmployees().then((empArr) => {
+                getRoles().then((rolesArr) => {
+                    updateEmployee(empArr, rolesArr)
+                })
+            });
+            break;
+
         case 'Quit':
             return quitApp();
     }
@@ -171,11 +198,12 @@ function addDepartment() {
         }
     ])
         .then((response) => {
-            db.query(insert, response.department, (err, result) => {
+            const { department } = response;
+            db.query(insert, department, (err, result) => {
                 if (err) {
                     throw err;
                 } else {
-                    console.log(`Added ${response.department} to departments!`);
+                    console.log(`Added ${department} to departments!`);
                 }
 
                 viewDepartments();
@@ -187,8 +215,6 @@ function addDepartment() {
 function addRole(deptArr) {
     console.log('Adding Role...');
     const insert = `INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)`;
-    console.log(deptArr);
-
 
     inquirer.prompt([
         {
@@ -202,7 +228,7 @@ function addRole(deptArr) {
                     console.log('Please enter a role.');
                     return false;
                 }
-            }
+            },
         },
         {
             message: 'Enter the salary for the role.',
@@ -215,57 +241,154 @@ function addRole(deptArr) {
                     console.log('Please enter a salary.');
                     return false;
                 }
-            }
+            },
         },
         {
             message: 'What department does the title reside in?',
             type: 'list',
             name: 'department',
-            choices: deptArr
+            choices: deptArr,
         }
     ])
         .then((response) => {
-            const {department} = response;
+            const { role, salary, department } = response;
             let deptId;
 
-            for(let i=0; deptArr.length; i++){
-                if(department === deptArr[i]){
-                    deptId = i+1;
+            for (let i = 0; deptArr.length; i++) {
+                if (department === deptArr[i]) {
+                    deptId = i + 1;
                     break;
                 }
             }
 
-            const newRole = [response.role, response.salary, deptId];
+            const newRole = [role, salary, deptId];
             db.query(insert, newRole, (err, result) => {
                 if (err) {
                     throw err;
                 } else {
-                    console.log(`Added ${response.role} to roles list!`);
+                    console.log(`Added ${role} to roles list!`);
                 }
 
                 viewRoles();
             })
         })
-
-
 };
 
 
-// Adds an employee
-async function addEmployee() {
+// Adds an employee with the following prompts and assigns them to a manager
+function addEmployee(empArr, rolesArr) {
     console.log('Adding Employee...');
     const insert = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`;
 
+    inquirer.prompt([
+        {
+            message: "What's the employee's first name?",
+            type: "input",
+            name: "first",
+        },
+        {
+            message: "What's the employee's last name?",
+            type: "input",
+            name: "last",
+        },
+        {
+            message: "What role will the employee have?",
+            type: "list",
+            name: "role",
+            choices: rolesArr,
+        },
+        {
+            message: "Who's the employee's manager?",
+            type: "list",
+            name: "manager",
+            choices: empArr,
+        },
+    ])
+        .then((response) => {
+            const { first, last, role, manager } = response;
+            let roleId;
+            let managerId;
+
+            for (let i = 0; i < rolesArr.length; i++) {
+                if (role === rolesArr[i]) {
+                    roleId = i + 1;
+                    break;
+                }
+            }
+
+            for (let i = 0; i < empArr.length; i++) {
+                if (manager === empArr[i]) {
+                    managerId = i + 1;
+                    break;
+                }
+            }
+
+            const newEmp = [first, last, roleId, managerId];
+            db.query(insert, newEmp, (err, result) => {
+                if (err) {
+                    throw err;
+                } else {
+                    console.log(`Added ${first} ${last} to employees list!`);
+                }
+
+                viewEmployees();
+            })
+        })
 }
 
 // Updates the employees info
-async function updateEmployee() {
+function updateEmployee(empArr, rolesArr) {
     console.log('Updating Employee...');
+    const update = `UPDATE employee SET role_id = (?) WHERE id = (?) `;
 
+    inquirer.prompt([
+        {
+            message: "Which employee do you wish to update?",
+            type: "list",
+            name: "employee",
+            choices: empArr,
+        },
+        {
+            message: "What role would you like them to have?",
+            type: "list",
+            name: "role",
+            choices: rolesArr,
+        }
+    ])
+        .then((response) => {
+            const { employee, role } = response;
+            let empId;
+            let roleId;
+
+            for (let i = 0; i < empArr.length; i++) {
+                if (employee === empArr[i]) {
+                    empId = i + 1;
+                    break;
+                }
+            }
+
+            for (let i = 0; i < rolesArr.length; i++) {
+                if (role === rolesArr[i]) {
+                    roleId = i + 1;
+                    break;
+                }
+            }
+
+            const updateRole = [roleId, empId];
+            db.query(update, updateRole, (err, result) => {
+                if (err) {
+                    throw err;
+                } else {
+                    console.log(`Updated ${employee}'s role to ${role}!`);
+                }
+
+                viewEmployees();
+            })
+        })
 }
 
 // Ending the connection to the database
-async function quitApp() {
+function quitApp() {
     console.log('Quitting...');
     db.end();
 }
